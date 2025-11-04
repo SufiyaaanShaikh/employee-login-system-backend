@@ -24,6 +24,11 @@ app.use(cookieParser());
 
 // ✅ DB connect before any API route
 app.use(dbConnectMiddleware);
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+});
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/employee", employeeRoutes);
