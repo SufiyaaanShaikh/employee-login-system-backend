@@ -1,19 +1,19 @@
-import express from 'express';
-import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
-import { authenticateToken } from '../middleware/auth.js';
+import express from "express";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import { authenticateToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
 // Generate JWT token
 const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, { 
-    expiresIn: '7d' 
+  return jwt.sign({ userId }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
   });
 };
 
 // Login
-router.post('/login', async (req, res) => {
+router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -21,7 +21,7 @@ router.post('/login', async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Email and password are required'
+        message: "Email and password are required",
       });
     }
 
@@ -30,7 +30,7 @@ router.post('/login', async (req, res) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: "Invalid email or password",
       });
     }
 
@@ -39,7 +39,7 @@ router.post('/login', async (req, res) => {
     if (!isValidPassword) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: "Invalid email or password",
       });
     }
 
@@ -47,46 +47,48 @@ router.post('/login', async (req, res) => {
     const token = generateToken(user._id);
 
     // Set cookie
-    res.cookie('token', token, {
+    res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      domain: "employee-login-system-frontend.vercel.app", // ✅ frontend domain
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     res.json({
       success: true,
-      message: 'Login successful',
+      message: "Login successful",
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
         employeeId: user.employeeId,
-        department: user.department
+        department: user.department,
       },
-      token
+      token,
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error("Login error:", error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: "Server error",
     });
   }
 });
 
 // Logout
-router.post('/logout', authenticateToken, (req, res) => {
-  res.clearCookie('token');
+router.post("/logout", authenticateToken, (req, res) => {
+  res.clearCookie("token");
   res.json({
     success: true,
-    message: 'Logout successful'
+    message: "Logout successful",
   });
 });
 
 // Get current user
-router.get('/me', authenticateToken, (req, res) => {
+router.get("/me", authenticateToken, (req, res) => {
   res.json({
     success: true,
     user: {
@@ -95,16 +97,16 @@ router.get('/me', authenticateToken, (req, res) => {
       email: req.user.email,
       role: req.user.role,
       employeeId: req.user.employeeId,
-      department: req.user.department
-    }
+      department: req.user.department,
+    },
   });
 });
 
 // Verify token
-router.get('/verify', authenticateToken, (req, res) => {
+router.get("/verify", authenticateToken, (req, res) => {
   res.json({
     success: true,
-    valid: true
+    valid: true,
   });
 });
 
