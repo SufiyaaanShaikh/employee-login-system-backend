@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.js";
 import employeeRoutes from "./routes/employee.js";
 import adminRoutes from "./routes/admin.js";
-import connectToDatabase from "./utils/db.js";
+import { dbConnectMiddleware } from "./middleware/dbConnect.js";
 
 dotenv.config();
 
@@ -22,6 +22,8 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
+// ✅ DB connect before any API route
+app.use(dbConnectMiddleware);
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/employee", employeeRoutes);
@@ -35,7 +37,6 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 5000;
 (async () => {
   try {
-    await connectToDatabase();
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
