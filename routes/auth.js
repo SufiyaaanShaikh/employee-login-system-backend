@@ -5,19 +5,17 @@ import { authenticateToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Generate JWT token
 const generateToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, {
     expiresIn: "7d",
   });
 };
 
-// Login
+// ✅ Login Route
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validation
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -25,7 +23,6 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // Find user
     const user = await User.findOne({ email, isActive: true });
     if (!user) {
       return res.status(401).json({
@@ -34,7 +31,6 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // Check password
     const isValidPassword = await user.comparePassword(password);
     if (!isValidPassword) {
       return res.status(401).json({
@@ -43,16 +39,15 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // Generate token
     const token = generateToken(user._id);
 
-    // Set cookie
+    // ✅ Correct cross-site cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Lax",
+      secure: true,
+      sameSite: "None",
       path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.json({
@@ -66,7 +61,6 @@ router.post("/login", async (req, res) => {
         employeeId: user.employeeId,
         department: user.department,
       },
-      token,
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -77,36 +71,28 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Logout
+// ✅ Logout
 router.post("/logout", authenticateToken, (req, res) => {
-  res.clearCookie("token");
-  res.json({
-    success: true,
-    message: "Logout successful",
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+    path: "/",
   });
+  res.json({ success: true, message: "Logout successful" });
 });
 
-// Get current user
+// ✅ Get current user
 router.get("/me", authenticateToken, (req, res) => {
   res.json({
     success: true,
-    user: {
-      id: req.user._id,
-      name: req.user.name,
-      email: req.user.email,
-      role: req.user.role,
-      employeeId: req.user.employeeId,
-      department: req.user.department,
-    },
+    user: req.user,
   });
 });
 
-// Verify token
+// ✅ Verify token
 router.get("/verify", authenticateToken, (req, res) => {
-  res.json({
-    success: true,
-    valid: true,
-  });
+  res.json({ success: true, valid: true });
 });
 
 export default router;
