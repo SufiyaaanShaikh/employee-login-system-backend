@@ -12,16 +12,13 @@ import { deleteExpiredPhotos } from "./utils/cleanup.js";
 dotenv.config();
 const app = express();
 
-const CLIENT_URL =
-  process.env.CLIENT_URL || "https://employee-login-system-frontend.vercel.app";
+const CLIENT_URL = "https://employee-login-system-frontend.vercel.app";
 
-// ✅ Correct CORS setup for cross-site cookies
-app.use(
-  cors({
-    origin: [CLIENT_URL, "http://localhost:3000"],
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: CLIENT_URL,
+  credentials: true,
+}));
+
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
